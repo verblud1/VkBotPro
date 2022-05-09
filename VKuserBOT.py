@@ -2,10 +2,6 @@ import vk_api
 import sys
 import time
 
-#253181870 = максим
-#617288051
-#551510928 # type: int
-
 user_id = []
 idu = []
 
@@ -210,8 +206,8 @@ def inf():
     try:
         for i in hu:
             d = vk_api.VkApi(token=i[0]).get_api()
-            suka = d.users.get(user_id = use)
-        print(suka)
+            su = d.users.get(user_id = use)
+        print(su)
     except:
         pass
     answ()
