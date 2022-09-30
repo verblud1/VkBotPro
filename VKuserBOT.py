@@ -51,6 +51,7 @@ class vkBot():
     def help(self):
         print('''
     моды:
+    0 - массовое вступление в группы из group_list.txt со всех акков
     1 - отправка сообщений
     2 - комментирование записей
     3 - поставить лайк
@@ -64,30 +65,19 @@ class vkBot():
 
 
     def mes(self):
-        iu = int(input('кому отправляем?(id): '))
-        mes = input('введите сообщение: ')
-        for i in self.check:
-            try:
-                d = vk_api.VkApi(token=i).get_api()
-                d.messages.send(user_id=iu,message=mes,random_id=0)
-                ada = d.account.getProfileInfo()
-                print(ada['first_name'],ada['last_name'],'[ id:',ada['id'],'] отправил сообщение')
-
-            except vk_api.exceptions.ApiError: 
-                ada = d.account.getProfileInfo()
-                print('сообщение не отправлено. Вероятно, проблемы с капчей или у пользователя закрыты сообщения, array =','[ id:',ada['id'],']')
-            
-       
-    
-
-    def while_mes(self):
+        ha = 1
         try:
+
+            d = input('делаем в цикле?(y/n): ')
             iu = int(input('кому отправляем?(id): '))
-            ha = int(input('сколько циклов?: '))
             mes = input('введите сообщение: ')
+
+            if d == 'y':
+                ha = int(input('сколько циклов?: '))
+
         except:
-            print('нужно число!')
-            self.while_mes()
+            print('ОШИБКА! Нужно число.')
+
         g = 0
         while(g!=ha):
             g+=1
@@ -100,6 +90,7 @@ class vkBot():
                 except vk_api.exceptions.ApiError: 
                     ada = d.account.getProfileInfo()
                     print('сообщение не отправлено. Вероятно, проблемы с капчей или у пользователя закрыты сообщения, array =','[ id:',ada['id'],']')
+                   
 
     def inf(self):
         try:
@@ -114,6 +105,7 @@ class vkBot():
             print(infoUser)
         except Exception as e:
             print(e)
+
 
     def like(self):
         try:
@@ -231,7 +223,35 @@ class vkBot():
                 ada = d.account.getProfileInfo()
                 print('акк не смог добавиться в друзья, array =', '[ id:',ada['id'],']')
         
-   
+    #load group from file 
+
+    def load_group(self):
+        self.group_id = []
+
+        file = open(sys.path[0] + '/group_list.txt', 'r',encoding = 'utf-8-sig').readlines()
+        for q in file:
+            try:
+                q = q.strip()
+                tmp = q.split()
+                self.group_id.append(int(tmp[0]))
+                print('загружена группа ',q)
+            except Exception as e:
+                print(e,'не удалось загрузить группу, array=',tmp)
+        print('загружено', len(self.group_id), 'групп')
+
+        for gr in self.group_id:
+            for i in self.check:
+                    try:
+                        d = vk_api.VkApi(token=i).get_api()
+                        d.groups.join(group_id = gr)
+                        ada = d.account.getProfileInfo()
+                        print(ada['first_name'],ada['last_name'],'[ id:',ada['id'],'] вступил в группу', gr)
+                    except Exception as e:
+                        ada = d.account.getProfileInfo()
+                        print(e,'| акк не смог вступить в группу, array = ','[ id acc:',ada['id'], 'id group:',gr, ']')
+
+        return self.group_id
+    
     def input(self):
         print('h - справка по модам, re - реконнект акков')
         
@@ -239,12 +259,10 @@ class vkBot():
         if a == 'h':
             self.help()
 
+        if a == '0':
+            self.load_group()
         if a == '1':
-            d = input('делаем в цикле?(y/n): ')
-            if d == 'n':
-                self.mes()
-            if d == 'y':
-                self.while_mes()
+            self.mes()
         if a == '2':
             self.wall()
         if a == '3':
@@ -269,10 +287,8 @@ class vkBot():
     
     print('')
     
+
 if __name__ == '__main__':
     main = vkBot()
     exit()
 
-class joinGroup():
-    def load_group():
-        pass
