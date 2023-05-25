@@ -1,6 +1,5 @@
 import vk_api
 import sys
-import time
 
 class vkBot():
 
@@ -11,6 +10,7 @@ class vkBot():
         
         self.input = self.input()
         
+#start
 
     def load_accs(self):   
             tok = []
@@ -24,11 +24,10 @@ class vkBot():
                     tmp = q.split(':',1)
                     self.user_id.append(tmp[0])
                     tok.append([bytes(tmp[1].strip(), 'UTF-8') ])
-                   
-                    
                     print('загружен', tmp[0])
                 except Exception as e:
                     print(e,'не удалось загрузить аккаунт, array=',tmp)
+                
             
             return tok 
 
@@ -36,14 +35,13 @@ class vkBot():
     def check(self):
         amountAcc=[]
         for i in self.accs:
+            
             try:
                 d = vk_api.VkApi(token=i).get_api()
                 d.account.getInfo(fields = 'country')
-                ada = d.account.getProfileInfo() 
                 amountAcc.append(i)       
-            except vk_api.exceptions.ApiError:
-                ada = d.account.getProfileInfo()
-                print('Неверный access_token. Возможно, аккаунт забанен, array =','[ id:',ada['id'],']')
+            except Exception as e:
+                print('Неверный access_token. Возможно, аккаунт забанен, array =','[ Access_token:',i,']',e)
         
         print('загружено', len(amountAcc), 'аккаунтов')
         return amountAcc
@@ -63,36 +61,37 @@ class vkBot():
         ''')
 
 
+#main
 
     def mes(self):
-        ha = 1
+        cycle_count = 1
         try:
 
             d = input('делаем в цикле?(y/n): ')
-            iu = int(input('кому отправляем?(id): '))
+            user_id = int(input('кому отправляем?(id): '))
             mes = input('введите сообщение: ')
 
             if d == 'y':
-                ha = int(input('сколько циклов?: '))
+                cycle_count = int(input('сколько циклов?: '))
 
         except:
             print('ОШИБКА! Нужно число.')
 
         g = 0
-        while(g!=ha):
+        while(g!=cycle_count):
             g+=1
             for i in self.check:
                 try:
                     d = vk_api.VkApi(token=i).get_api()
-                    d.messages.send(user_id=iu,message=mes,random_id=0)
-                    ada = d.account.getProfileInfo()
-                    print(ada['first_name'],ada['last_name'],'[ id:',ada['id'],'] отправил сообщение')
+                    d.messages.send(user_id=user_id,message=mes,random_id=0)
+                    u_info = d.account.getProfileInfo()
+                    print(u_info['first_name'],u_info['last_name'],'[ id:',u_info['id'],'] отправил сообщение')
                 except vk_api.exceptions.ApiError: 
-                    ada = d.account.getProfileInfo()
-                    print('сообщение не отправлено. Вероятно, проблемы с капчей или у пользователя закрыты сообщения, array =','[ id:',ada['id'],']')
+                    u_info = d.account.getProfileInfo()
+                    print('сообщение не отправлено. Вероятно, проблемы с капчей или у пользователя закрыты сообщения, array =','[ id:',u_info['id'],']')
                    
 
-    def inf(self):
+    def info_user(self):
         try:
             use = int(input('id пользователя: '))
         except:
@@ -101,7 +100,7 @@ class vkBot():
         try:
             for i in self.check:
                 d = vk_api.VkApi(token=i[0]).get_api()
-                infoUser = d.users.get(user_id = use)
+                infoUser = d.users.get(user_id = use, fields='city,country,about,nickname,personal,maiden_name,status,contacts,domain,friend_status,has_mobile,followers_count,screen_name,wall_default,verified')
             print(infoUser)
         except Exception as e:
             print(e)
@@ -119,18 +118,17 @@ class vkBot():
                 try:
                     d = vk_api.VkApi(token=i).get_api()
                     d.likes.add(type = 'comment',owner_id = user_id,item_id = post_id)
-                    ada = d.account.getProfileInfo()
-                    print(ada['first_name'],ada['last_name'],'[ id:',ada['id'],'] поставил лайк')
+                    u_info = d.account.getProfileInfo()
+                    print(u_info['first_name'],u_info['last_name'],'[ id:',u_info['id'],'] поставил лайк')
                 except vk_api.exceptions.ApiError:    
                         try:
                             d = vk_api.VkApi(token=i).get_api()
-                            ada = d.account.getProfileInfo()
+                            u_info = d.account.getProfileInfo()
                             d.likes.add(type = 'photo',owner_id = user_id,item_id = post_id)
-                            print(ada['first_name'],ada['last_name'],'[ id:',ada['id'],'] поставил лайк')
+                            print(u_info['first_name'],u_info['last_name'],'[ id:',u_info['id'],'] поставил лайк')
                         except vk_api.exceptions.ApiError: 
-                            ada = d.account.getProfileInfo()
-                            print('невозможно поставить лайк. Вероятно, проблемы с капчей, array =','[ id:',ada['id'],']') 
-
+                            u_info = d.account.getProfileInfo()
+                            print('невозможно поставить лайк. Вероятно, проблемы с капчей, array =','[ id:',u_info['id'],']') 
         except:
             pass  
         
@@ -146,16 +144,13 @@ class vkBot():
             try:
                 d = vk_api.VkApi(token=i).get_api()
                 d.wall.post(owner_id = owner_id,message=message)
-                ada = d.account.getProfileInfo()
-                print(ada['first_name'],ada['last_name'],'[ id:',ada['id'],'] опубликовал запись')
+                u_info = d.account.getProfileInfo()
+                print(u_info['first_name'],u_info['last_name'],'[ id:',u_info['id'],'] опубликовал запись')
             except vk_api.exceptions.ApiError: 
-                ada = d.account.getProfileInfo()
-                print('невозможно опубликовать запись. Вероятно, у пользователя закрыта стена, array =', '[ id:',ada['id'],']')
+                u_info = d.account.getProfileInfo()
+                print('невозможно опубликовать запись. Вероятно, у пользователя закрыта стена, array =', '[ id:',u_info['id'],']')
 
-
-        
-
-    def wall(self):
+    def wall_comment(self):
         try:
             owner_id = int(input('кого комментим?(id):'))
             el_id = int(input('id поста:'))
@@ -168,24 +163,23 @@ class vkBot():
                 try:
                     d = vk_api.VkApi(token=i).get_api()
                     d.wall.createComment(owner_id = owner_id,post_id = el_id, message = message )
-                    ada = d.account.getProfileInfo()
-                    print(ada['first_name'],ada['last_name'],'[ id:',ada['id'],'] оставил комментарий')
+                    u_info = d.account.getProfileInfo()
+                    print(u_info['first_name'],u_info['last_name'],'[ id:',u_info['id'],'] оставил комментарий')
                 except vk_api.exceptions.ApiError: 
                     try:
                         d = vk_api.VkApi(token=i).get_api()
                         d.video.createComment(owner_id = owner_id,video_id = el_id,message = message)
-                        ada = d.account.getProfileInfo()
-                        print(ada['first_name'],ada['last_name'],'[ id:',ada['id'],'] оставил комментарий')
+                        u_info = d.account.getProfileInfo()
+                        print(u_info['first_name'],u_info['last_name'],'[ id:',u_info['id'],'] оставил комментарий')
                     except vk_api.exceptions.ApiError:
                         try:
                             d = vk_api.VkApi(token=i).get_api()
                             d.photos.createComment(owner_id = owner_id,photo_id = el_id,message = message)
-                            ada = d.account.getProfileInfo()
-                            print(ada['first_name'],ada['last_name'],'[ id:',ada['id'],'] оставил комментарий')
+                            u_info = d.account.getProfileInfo()
+                            print(u_info['first_name'],u_info['last_name'],'[ id:',u_info['id'],'] оставил комментарий')
                         except vk_api.exceptions.ApiError:
-                            ada = d.account.getProfileInfo()
-                            print('невозможно оставить коммент. Возможно, у поста закрыты комментарии, array =','[ id:',ada['id'],']')
-
+                            u_info = d.account.getProfileInfo()
+                            print('невозможно оставить коммент. Возможно, у поста закрыты комментарии, array =','[ id:',u_info['id'],']')
         except:
             pass
 
@@ -200,11 +194,11 @@ class vkBot():
                 try:
                     d = vk_api.VkApi(token=i).get_api()
                     d.groups.join(group_id = group_id)
-                    ada = d.account.getProfileInfo()
-                    print(ada['first_name'],ada['last_name'],'[ id:',ada['id'],'] вступил в группу')
+                    u_info = d.account.getProfileInfo()
+                    print(u_info['first_name'],u_info['last_name'],'[ id:',u_info['id'],'] вступил в группу')
                 except vk_api.exceptions.ApiError:
-                    ada = d.account.getProfileInfo()
-                    print('акк не смог вступить в группу, array = ','[ id:',ada['id'],']')
+                    u_info = d.account.getProfileInfo()
+                    print('акк не смог вступить в группу, array = ','[ id:',u_info['id'],']')
        
 
     def friends_add(self):
@@ -217,12 +211,13 @@ class vkBot():
             try:
                 d = vk_api.VkApi(token=i).get_api()
                 d.friends.add(user_id = user_id)
-                ada = d.account.getProfileInfo()
-                print(ada['first_name'],ada['last_name'],'[ id:',ada['id'],'] добавился в друзья')
+                u_info = d.account.getProfileInfo()
+                print(u_info['first_name'],u_info['last_name'],'[ id:',u_info['id'],'] добавился в друзья')
             except vk_api.exceptions.ApiError:
-                ada = d.account.getProfileInfo()
-                print('акк не смог добавиться в друзья, array =', '[ id:',ada['id'],']')
-        
+                u_info = d.account.getProfileInfo()
+                print('акк не смог добавиться в друзья, array =', '[ id:',u_info['id'],']')
+
+
     #load group from file 
 
     def load_group(self):
@@ -244,16 +239,19 @@ class vkBot():
                     try:
                         d = vk_api.VkApi(token=i).get_api()
                         d.groups.join(group_id = gr)
-                        ada = d.account.getProfileInfo()
-                        print(ada['first_name'],ada['last_name'],'[ id:',ada['id'],'] вступил в группу', gr)
+                        u_info = d.account.getProfileInfo()
+                        print(u_info['first_name'],u_info['last_name'],'[ id:',u_info['id'],'] вступил в группу', gr)
                     except Exception as e:
-                        ada = d.account.getProfileInfo()
-                        print(e,'| акк не смог вступить в группу, array = ','[ id acc:',ada['id'], 'id group:',gr, ']')
+                        u_info = d.account.getProfileInfo()
+                        print(e,'| акк не смог вступить в группу, array = ','[ id acc:',u_info['id'], 'id group:',gr, ']')
 
         return self.group_id
     
+ 
+
+    
     def input(self):
-        print('h - справка по модам, re - реконнект акков')
+        print('h - справка по модам, re - реконнект акков, q - выход')
         
         a = input('>>')
         if a == 'h':
@@ -264,11 +262,11 @@ class vkBot():
         if a == '1':
             self.mes()
         if a == '2':
-            self.wall()
+            self.wall_comment()
         if a == '3':
             self.like()
         if a == '4':
-            self.inf()
+            self.info_user()
         if a == '5':
             self.post()
         if a == '6':
@@ -276,7 +274,6 @@ class vkBot():
         if a == '7':
             self.friends_add()
         
-       
         if a == 're':   
             vkBot()
         if a == 'q':
@@ -291,4 +288,3 @@ class vkBot():
 if __name__ == '__main__':
     main = vkBot()
     exit()
-
